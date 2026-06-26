@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Bunu Biliyor muydun?</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#6366F1">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -277,7 +274,7 @@ html, body {
   <div class="top-row">
     <div class="app-name">Bunu Biliyor muydun?</div>
     <div class="counter-chip">
-      <span id="seenCount">1</span> / 100
+      <span id="seenCount">1</span> / 201
     </div>
   </div>
 
@@ -318,7 +315,7 @@ html, body {
   <div class="finish-title">Tebrikler!</div>
   <div class="finish-sub">100 bilginin tamamını gördün.<br>Yarın yeni bilgilerle tekrar gel.</div>
   <div class="finish-stat">
-    <div class="finish-num">100</div>
+    <div class="finish-num">201</div>
     <div class="finish-lbl">Bilgi Öğrenildi</div>
   </div>
   <button class="btn-restart" onclick="restartAll()">🔄 Baştan Başla</button>
@@ -421,6 +418,100 @@ const FACTS = [
   { icon:"🌊", cat:"DOĞA",    text:"Okyanus, yeryüzünün en büyük müzik salonu gibidir. Sesler binlerce kilometre yayılabilir.", source:"Oşinografi" },
   { icon:"🔬", cat:"BİLİM",   text:"Işık hızı sabittir ama zaman değildir. Hıza yaklaştıkça zaman yavaşlar — bu ispatlanmıştır.", source:"Fizik" },
   { icon:"🐬", cat:"HAYVAN",  text:"Yunuslar isimleri vardır. Birbirlerini özgün ıslık sesleriyle çağırır ve tepki verirler.", source:"Etoloji" },
+  
+  { icon:"🦊", cat:"HAYVAN", text:"Tilkiler 40'tan fazla farklı ses çıkarabilir. Bu, köpeklerin çıkarabileceğinden çok daha fazladır.", source:"Zooloji" },
+  { icon:"🌙", cat:"UZAY", text:"Jüpiter o kadar büyüktür ki Dünya ona 1.300 kez sığar.", source:"Astronomi" },
+  { icon:"🧂", cat:"TARİH", text:"Tuz tarihte para olarak kullanılmıştır. 'Salary' kelimesi Latince 'sal' yani tuzdan gelir.", source:"Tarih" },
+  { icon:"🐠", cat:"HAYVAN", text:"Deniz atları tek eşlidir ve ömür boyu aynı partnerle yaşar.", source:"Zooloji" },
+  { icon:"🌿", cat:"BİLİM", text:"Bir ağaç, ömrü boyunca yaklaşık bir ton CO2 emer.", source:"Çevre" },
+  { icon:"🎭", cat:"TARİH", text:"Shakespeare eserlerini yazdığında İngilizce'de yalnızca 150.000 kelime vardı. Bugün 1 milyonun üzerinde.", source:"Tarih" },
+  { icon:"🦷", cat:"İNSAN", text:"Parmak izi gibi dil izi de herkeste farklıdır. Dil izi biyometrik tanımlama için kullanılabilir.", source:"Biyoloji" },
+  { icon:"🐋", cat:"HAYVAN", text:"Balinalar uyurken yarı dik durur ve yüzeye çıkarak nefes alır. Tam anlamıyla uyuyamazlar.", source:"Zooloji" },
+  { icon:"🌋", cat:"DÜNYA", text:"Hawai her yıl Japonya'ya 7.5 cm yaklaşıyor. Pasifik plakası bu yönde hareket ediyor.", source:"Jeoloji" },
+  { icon:"🍕", cat:"KÜLTÜR", text:"Pizza kelimesi ilk kez 997 yılında İtalyanca bir belgede geçti. Ama modern pizza 1800'lerde doğdu.", source:"Kültür" },
+  { icon:"🦴", cat:"İNSAN", text:"Bebeklerin 270 kemiği vardır. Yetişkinlerde bu sayı 206'ya düşer — kemikler birleşir.", source:"Anatomi" },
+  { icon:"🐸", cat:"HAYVAN", text:"Kurbağalar su içmez. Derileri aracılığıyla suyu emer.", source:"Zooloji" },
+  { icon:"🌞", cat:"UZAY", text:"Güneş her 11 yılda bir manyetik kutuplarını yer değiştirir. Kuzey ve güney yer değiştirir.", source:"Astronomi" },
+  { icon:"🍎", cat:"DOĞA", text:"Elma, gül ailesinden gelir. Armut, kiraz ve erik de aynı ailedendir.", source:"Botanik" },
+  { icon:"🐦", cat:"HAYVAN", text:"Serçeler hem dünyada hem de metroda yaşayan nadir türlerdendir. İstanbul metrosunda da görülür.", source:"Zooloji" },
+  { icon:"💻", cat:"TEKNOLOJİ", text:"İlk bilgisayar hatası gerçek bir böcekti. 1947'de Grace Hopper bilgisayara sıkışmış bir güve buldu.", source:"Teknoloji" },
+  { icon:"🌊", cat:"DÜNYA", text:"Büyük Okyanus'un en derin noktası Mariana Çukuru 11 kilometreden derindir. Everest oraya sığar.", source:"Coğrafya" },
+  { icon:"🦅", cat:"HAYVAN", text:"Kartallar fırtına sırasında yukarı çıkmak için rüzgarı kullanır. Hiç kanat çırpmadan yükselebilirler.", source:"Zooloji" },
+  { icon:"🧠", cat:"BİLİM", text:"İnsan gözü 10 milyon farklı rengi ayırt edebilir. Ama her kişi renkleri biraz farklı algılar.", source:"Nöroloji" },
+  { icon:"🏺", cat:"TARİH", text:"Çin Seddi uzaydan görünmez. Bu yaygın bir efsanedir — duvar çok ince ve gri renktedir.", source:"Tarih" },
+  { icon:"🐬", cat:"HAYVAN", text:"Yunuslar birbirlerini öldürmeye çalışan nadir memelilerden biridir. Sosyal gruplar arası çatışmalar olur.", source:"Etoloji" },
+  { icon:"🌍", cat:"DÜNYA", text:"Avustralya kıtası her yıl 7 cm kuzey-kuzeydoğuya hareket ediyor.", source:"Jeoloji" },
+  { icon:"🔢", cat:"BİLİM", text:"Pi sayısı sonsuzdur. Şimdiye kadar 100 trilyon basamağı hesaplandı.", source:"Matematik" },
+  { icon:"🐊", cat:"HAYVAN", text:"Timsahlar 200 milyon yıldır neredeyse hiç değişmedi. Dinozorlarla birlikte yaşadılar.", source:"Paleontoloji" },
+  { icon:"🌺", cat:"DOĞA", text:"Çiçeklerin rengi böcekleri çekmek içindir. İnsanların göremediği mor ötesi renklerde de işaretler var.", source:"Botanik" },
+  { icon:"🚀", cat:"UZAY", text:"Uzaydaki en büyük bilinen yıldız UY Scuti, güneşten 1700 kat büyüktür.", source:"Astronomi" },
+  { icon:"🦁", cat:"HAYVAN", text:"Dişi aslanlar avcılığın yüzde doksanını yapar. Erkek aslanlar genellikle av etmez.", source:"Zooloji" },
+  { icon:"🧬", cat:"BİLİM", text:"İki insan arasındaki genetik fark sadece binde birdir. Tüm insanlık neredeyse aynı DNA'ya sahip.", source:"Genetik" },
+  { icon:"🏔️", cat:"DÜNYA", text:"Himalayalar hâlâ büyüyor. Her yıl yaklaşık 5 mm yükseliyor.", source:"Jeoloji" },
+  { icon:"🐙", cat:"HAYVAN", text:"Ahtapotlar renk körü olmalarına rağmen renk değiştirebilir. Derilerindeki reseptörler ışığı algılar.", source:"Zooloji" },
+  { icon:"💡", cat:"BİLİM", text:"Işık hızında seyahat etseydiniz zaman sizin için durur, dışarıdaki herkes için akar.", source:"Fizik" },
+  { icon:"🐧", cat:"HAYVAN", text:"Penguenler uçamaz ama yüzmede son derece yeteneklidir. Saatte 25 km hıza ulaşabilirler.", source:"Zooloji" },
+  { icon:"🍌", cat:"DOĞA", text:"Muz hafif radyoaktiftir. İçindeki potasyum-40 izotopu nedeniyle.", source:"Fizik" },
+  { icon:"🌍", cat:"TARİH", text:"İstanbul tarihin en çok kuşatılan şehridir. 23 kez kuşatıldı.", source:"Tarih" },
+  { icon:"🦎", cat:"HAYVAN", text:"Kameleonlar duygu durumlarını renk değiştirerek ifade eder. Gizlenme için değil, iletişim için.", source:"Zooloji" },
+  { icon:"🧊", cat:"BİLİM", text:"Sıcak su bazı koşullarda soğuk sudan daha hızlı donar. Buna Mpemba etkisi denir.", source:"Fizik" },
+  { icon:"🌿", cat:"DOĞA", text:"Bambu dünyanın en hızlı büyüyen bitkisidir. Günde 91 cm büyüyebilir.", source:"Botanik" },
+  { icon:"🐘", cat:"HAYVAN", text:"Filler ölülerini gömer ve mezarlarına geri döner. Yas tutarlar.", source:"Etoloji" },
+  { icon:"🔬", cat:"BİLİM", text:"Bir damla deniz suyunda milyonlarca mikro organizma vardır.", source:"Mikrobiyoloji" },
+  { icon:"🎵", cat:"KÜLTÜR", text:"Mozart 5 yaşında ilk senfonisini besteledi. 35 yıllık kısa ömründe 626 eser yarattı.", source:"Kültür" },
+  { icon:"🐺", cat:"HAYVAN", text:"Kurtlar tüm gece ulu değil, genellikle alacakaranlıkta ve sabahın erken saatlerinde ulur.", source:"Etoloji" },
+  { icon:"🍯", cat:"DOĞA", text:"Bir arı ömrü boyunca yalnızca bir tatlı kaşığı bal üretir.", source:"Ekoloji" },
+  { icon:"🧲", cat:"BİLİM", text:"Elektromanyetizma olmadan atom yapısı çöker. Maddenin şekli elektromanyetik kuvvetten gelir.", source:"Fizik" },
+  { icon:"🐟", cat:"HAYVAN", text:"Denizanalarının yüzde doksanbeşi sudur. Öldüklerinde neredeyse tamamen buharlaşırlar.", source:"Zooloji" },
+  { icon:"🌞", cat:"DOĞA", text:"Kar taneleri altı köşelidir çünkü su moleküllerinin bağlanma açısı 120 derecedir.", source:"Kimya" },
+  { icon:"🏛️", cat:"TARİH", text:"Antik Yunan'da olimpiyatlara yalnızca erkekler katılabilirdi. Evli kadınların izleme hakkı bile yoktu.", source:"Tarih" },
+  { icon:"🦋", cat:"HAYVAN", text:"Kelebekler ayaklarıyla tat alır. Ayak altlarındaki reseptörler tatlıyı algılar.", source:"Zooloji" },
+  { icon:"🌍", cat:"DÜNYA", text:"Dünya'nın merkezi 6.000 derece Celsius sıcaklığındadır — Güneş yüzeyiyle aynı.", source:"Jeoloji" },
+  { icon:"📚", cat:"KÜLTÜR", text:"Türk alfabesi 1928'de Atatürk tarafından değiştirildi. Arap alfabesinden Latin alfabesine geçildi.", source:"Tarih" },
+  { icon:"🐝", cat:"HAYVAN", text:"Arılar sekizgen petek yapar çünkü bu şekil en az malzemeyle en fazla alanı kaplar.", source:"Matematik" },
+  { icon:"🌊", cat:"BİLİM", text:"Okyanus dalgaları yalnızca su hareketiyle değil, enerji hareketiyle oluşur. Su yerinde kalır.", source:"Fizik" },
+  { icon:"🦊", cat:"KÜLTÜR", text:"Japonya'da tilki kutsal sayılır. Tanrının habercisi olduğuna inanılır.", source:"Kültür" },
+  { icon:"🔭", cat:"UZAY", text:"Evrenin genişleme hızı ışık hızından daha hızlıdır. Bu yüzden bazı yıldızları hiç göremeyeceğiz.", source:"Astrofizik" },
+  { icon:"🐢", cat:"HAYVAN", text:"Galápagos kaplumbağaları 177 yıla kadar yaşayabilir. En uzun yaşayan karasal hayvandır.", source:"Zooloji" },
+  { icon:"🧪", cat:"BİLİM", text:"Altın yenmez değil, 24 ayar altın yenilebilir ve vücut tarafından sindirilmeden atılır.", source:"Kimya" },
+  { icon:"🐓", cat:"HAYVAN", text:"Dünyada insandan 3 kat fazla tavuk vardır. 30 milyar tavuk var.", source:"Zooloji" },
+  { icon:"🍵", cat:"KÜLTÜR", text:"Çay dünyanın en çok tüketilen içeceğidir — sudan sonra.", source:"Kültür" },
+  { icon:"🌿", cat:"BİLİM", text:"Fotosentez dünyada üretilen enerjinin yüzde doksan dokuzundan fazlasının kaynağıdır.", source:"Biyoloji" },
+  { icon:"🌋", cat:"DÜNYA", text:"İzlanda tamamen volkanik bir adadır. Her yıl yeni arazi oluşur.", source:"Jeoloji" },
+  { icon:"🐬", cat:"BİLİM", text:"Yunus beyni insankinden büyüktür ve nöron yoğunluğu çok yüksektir.", source:"Nöroloji" },
+  { icon:"🌍", cat:"DÜNYA", text:"Antarktika bir kıtadır ve dünyanın en büyük tatlı su rezervini barındırır.", source:"Coğrafya" },
+  { icon:"🎮", cat:"TEKNOLOJİ", text:"Minecraft dünyası gerçek dünyanın yüzeyinden 8 kat büyüktür.", source:"Teknoloji" },
+  { icon:"🐸", cat:"HAYVAN", text:"Zehirli ok kurbağaları zehirini yedikleri böceklerden alır. Akvaryumda zehirsiz olurlar.", source:"Zooloji" },
+  { icon:"🌞", cat:"BİLİM", text:"Güneş her saniye 600 milyon ton hidrojeni helyuma dönüştürür.", source:"Astrofizik" },
+  { icon:"🏺", cat:"TARİH", text:"Antik Mısır'da kediler kutsaldı. Kedi öldürmek ölüm cezasıyla cezalandırılırdı.", source:"Tarih" },
+  { icon:"🦅", cat:"HAYVAN", text:"Kartal gözleri insan gözünden 4-8 kat daha keskindir. 3 km öteden avını görebilir.", source:"Zooloji" },
+  { icon:"💧", cat:"BİLİM", text:"Su tek maddedir ki hem katı hem sıvı hem gaz halinde doğada serbestçe bulunabilir.", source:"Kimya" },
+  { icon:"🐋", cat:"HAYVAN", text:"Balinaların şarkısı binlerce kilometre öteden duyulabilir.", source:"Etoloji" },
+  { icon:"🌍", cat:"TARİH", text:"İpek Yolu sadece ticaret değil, fikir, din ve hastalık da taşıdı.", source:"Tarih" },
+  { icon:"🔬", cat:"BİLİM", text:"Virüsler canlı mı değil mi tartışması hâlâ sürmektedir. Kendi başlarına üretemezler.", source:"Biyoloji" },
+  { icon:"🌺", cat:"KÜLTÜR", text:"Türkiye kişi başı çay tüketiminde dünya birincisidir.", source:"Kültür" },
+  { icon:"🧬", cat:"BİLİM", text:"CRISPR teknolojisi ile DNA düzenleme mümkün. Genetik hastalıklar gelecekte tedavi edilebilir.", source:"Genetik" },
+  { icon:"🐝", cat:"DOĞA", text:"Arılar olmadan dünya tarımının yüzde otuz beşi çöker. Tarım ekonomisi ciddi zarar görür.", source:"Ekoloji" },
+  { icon:"🌊", cat:"UZAY", text:"Satürn'ün halkaları buz ve kayadan oluşur. Halkaların kalınlığı yalnızca 10-30 metredir.", source:"Astronomi" },
+  { icon:"🦷", cat:"TARİH", text:"Diş fırçası 1498'de Çin'de icat edildi. Domuz kılından yapılırdı.", source:"Tarih" },
+  { icon:"🐊", cat:"HAYVAN", text:"Timsahlar son derece iyi anne ve babalardır. Yavrularını aylarca korurlar.", source:"Etoloji" },
+  { icon:"🔭", cat:"UZAY", text:"Hubble Uzay Teleskobu 13 milyar ışık yılı ötesini görebiliyor.", source:"Astronomi" },
+  { icon:"🐠", cat:"HAYVAN", text:"Mercan resifleri okyanusun yüzde birini kaplar ama deniz canlılarının yüzde yirmi beşine ev sahipliği yapar.", source:"Ekoloji" },
+  { icon:"🧊", cat:"DÜNYA", text:"Antarktika'da -89.2 derece ölçüldü. Dünyanın en soğuk yeridir.", source:"Coğrafya" },
+  { icon:"🎵", cat:"BİLİM", text:"Müzik ritmi kalp atışını düzenleyebilir. Tempo değiştikçe nabız da değişir.", source:"Nöroloji" },
+  { icon:"🌿", cat:"TARİH", text:"Kahve Etiyopya'da keşfedildi. Bir keçi çobanı keçilerinin enerjik olduğunu fark etti.", source:"Tarih" },
+  { icon:"🐘", cat:"BİLİM", text:"Fil seslerinin büyük çoğunluğu insanların duyamayacağı kadar düşük frekanstadır.", source:"Akustik" },
+  { icon:"🌋", cat:"TARİH", text:"Pompeii 79 MS'de Vezüv yanardağı patlamasıyla yok oldu. 1748'de keşfedildi.", source:"Tarih" },
+  { icon:"🦊", cat:"HAYVAN", text:"Kutup tilkisi -70 derecede titremeden yaşayabilir. En dayanıklı memeli türlerinden biridir.", source:"Zooloji" },
+  { icon:"🍎", cat:"BİLİM", text:"Newton'un başına elma düştüğü hikayesi muhtemelen metafordur. Newton kendisi anlattı ama detaylar belirsiz.", source:"Tarih" },
+  { icon:"🐟", cat:"HAYVAN", text:"Köpekbalıkları 450 milyon yıldır var. Dinozorlardan 200 milyon yıl önce ortaya çıktılar.", source:"Paleontoloji" },
+  { icon:"🌍", cat:"KÜLTÜR", text:"Türkiye hem Asya hem Avrupa'da toprağa sahip tek ülkedir.", source:"Coğrafya" },
+  { icon:"🔢", cat:"BİLİM", text:"Sonsuzluktan büyük sonsuzluk vardır. Matematiksel olarak farklı büyüklükte sonsuzlar mevcuttur.", source:"Matematik" },
+  { icon:"🌺", cat:"BİLİM", text:"Renk körü insanlar bazı renkleri göremez ama bazı kamuflajları normal insanlardan daha iyi fark eder.", source:"Nöroloji" },
+  { icon:"🦁", cat:"HAYVAN", text:"Aslanlar günün 20 saatine kadar uyuyabilir. Dünyanın en uyuyan büyük memelilerinden biri.", source:"Zooloji" },
+  { icon:"🌊", cat:"DOĞA", text:"Okyanus akıntıları iklimi düzenler. Körfez Akıntısı Avrupa'yı ılıman kılar.", source:"Oşinografi" },
+  { icon:"🎭", cat:"KÜLTÜR", text:"Karagöz ve Hacivat Osmanlı döneminde doğdu. 700 yıllık Türk gölge tiyatrosu geleneğidir.", source:"Kültür" },
+
   { icon:"🌙", cat:"TARİH",   text:"Türkler, tarihte 16 büyük devlet kurdu. Bu, dünya tarihinde herhangi bir millet için rekor sayılır.", source:"Tarih" },
   { icon:"🧬", cat:"BİLİM",   text:"Eğer tüm insan DNA'sı uzatılsaydı, Güneş'e 70 gidiş dönüş yapabilirdi.", source:"Genetik" },
   { icon:"🌿", cat:"DOĞA",    text:"Sekoya ağaçları yangından güçlenir. Kozalakları yalnızca yüksek sıcaklıkta açılır ve tohum bırakır.", source:"Botanik" },
@@ -568,6 +659,5 @@ bgLoop();
 
 init();
 </script>
-<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </body>
 </html>
