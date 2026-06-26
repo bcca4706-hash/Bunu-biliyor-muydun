@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Bunu Biliyor muydun?</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #06080F;
+  --surface: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.08);
+  --text: #EEF2FF;
+  --text2: #5B6785;
+  --accent: #6366F1;
+  --accent2: #818CF8;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ── BG CANVAS ── */
+#bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ── MAIN WRAP ── */
+.wrap {
+  position: relative; z-index: 1;
+  width: 100%; height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: space-between;
+  padding: 52px 24px 24px;
+}
+
+/* ── TOP ── */
+.top-row {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.app-name {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; color: var(--text2);
+  text-transform: uppercase;
+}
+
+.counter-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px; font-weight: 700;
+  color: var(--text2);
+}
+
+.counter-chip span { color: var(--accent2); }
+
+/* ── CARD ── */
+.card-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+
+.fact-card {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 24px;
+  padding: 32px 26px;
+  display: flex; flex-direction: column; gap: 20px;
+  position: relative;
+  overflow: hidden;
+  animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card-glow {
+  position: absolute;
+  top: -60px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.fact-category {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.cat-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent2);
+}
+
+.cat-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; color: var(--accent2);
+  text-transform: uppercase;
+}
+
+.fact-icon {
+  font-size: 48px; line-height: 1;
+  filter: drop-shadow(0 4px 16px rgba(99,102,241,0.3));
+}
+
+.fact-text {
+  font-size: 19px; font-weight: 600;
+  line-height: 1.55; color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.fact-source {
+  font-size: 11px; color: var(--text2);
+  font-weight: 500;
+}
+
+/* Swipe hint */
+.swipe-hint {
+  position: absolute;
+  bottom: -28px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px; color: var(--text2);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  animation: hintFade 3s ease 2s forwards;
+  opacity: 1;
+}
+@keyframes hintFade { to { opacity: 0; } }
+
+/* ── PROGRESS DOTS ── */
+.progress-dots {
+  display: flex; gap: 5px; align-items: center;
+}
+
+.pdot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s;
+}
+.pdot.active {
+  background: var(--accent2);
+  width: 18px;
+  border-radius: 3px;
+}
+.pdot.seen { background: rgba(99,102,241,0.3); }
+
+/* ── BOTTOM ── */
+.bottom-area {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 12px;
+  align-items: center;
+}
+
+.next-btn {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, var(--accent) 0%, #8B5CF6 100%);
+  border: none; border-radius: 16px;
+  color: white;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px; font-weight: 800;
+  cursor: pointer; letter-spacing: 0.3px;
+  box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+  transition: transform 0.1s, box-shadow 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.next-btn:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
+
+/* ── AD BANNER ── */
+.ad-wrap {
+  width: 100%; position: relative;
+  overflow: hidden;
+}
+
+.ad-bar {
+  width: 100%; height: 52px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 14px;
+}
+
+.ad-label { font-size: 11px; color: var(--text2); }
+
+.ad-timer {
+  font-size: 10px; font-weight: 700;
+  color: var(--accent2);
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 20px;
+  padding: 3px 9px;
+  min-width: 48px;
+  text-align: center;
+}
+
+.ad-progress {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), #8B5CF6);
+  border-radius: 0 0 0 12px;
+  transition: width 1s linear;
+}
+
+/* ── FINISH SCREEN ── */
+#finishScreen {
+  position: fixed; inset: 0; z-index: 50;
+  background: var(--bg);
+  display: none;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px; padding: 40px 32px;
+  text-align: center;
+}
+
+.finish-icon { font-size: 64px; }
+
+.finish-title {
+  font-size: 32px; font-weight: 800;
+  letter-spacing: -1.5px;
+  background: linear-gradient(135deg, #fff, var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.finish-sub { font-size: 15px; color: var(--text2); line-height: 1.6; }
+
+.finish-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 40px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+.finish-num {
+  font-size: 48px; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent2), #C4B5FD);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+}
+
+.finish-lbl { font-size: 11px; color: var(--text2); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+.btn-restart {
+  width: 100%; padding: 18px;
+  background: linear-gradient(135deg, var(--accent), #8B5CF6);
+  border: none; border-radius: 16px;
+  color: white; font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px; font-weight: 800; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="wrap" id="mainWrap">
+  <div class="top-row">
+    <div class="app-name">Bunu Biliyor muydun?</div>
+    <div class="counter-chip">
+      <span id="seenCount">1</span> / 100
+    </div>
+  </div>
+
+  <div class="card-wrap">
+    <div class="fact-card" id="factCard">
+      <div class="card-glow"></div>
+      <div class="fact-category">
+        <div class="cat-dot"></div>
+        <div class="cat-label" id="catLabel">BİLİM</div>
+      </div>
+      <div class="fact-icon" id="factIcon">🔬</div>
+      <div class="fact-text" id="factText">Yükleniyor...</div>
+      <div class="fact-source" id="factSource">— Bilim</div>
+    </div>
+    <div class="swipe-hint">← Sola kaydır · Sağa kaydır →</div>
+  </div>
+
+  <div class="progress-dots" id="progressDots"></div>
+
+  <div class="bottom-area">
+    <button class="next-btn" onclick="nextFact()">
+      Sonraki Bilgi →
+    </button>
+
+    <div class="ad-wrap" id="adWrap">
+      <div class="ad-bar">
+        <div class="ad-label">📢 Reklam Alanı · AdMob</div>
+        <div class="ad-timer" id="adTimer">3 sn</div>
+      </div>
+      <div class="ad-progress" id="adProgress" style="width:100%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FİNİŞ -->
+<div id="finishScreen">
+  <div class="finish-icon">🧠</div>
+  <div class="finish-title">Tebrikler!</div>
+  <div class="finish-sub">100 bilginin tamamını gördün.<br>Yarın yeni bilgilerle tekrar gel.</div>
+  <div class="finish-stat">
+    <div class="finish-num">100</div>
+    <div class="finish-lbl">Bilgi Öğrenildi</div>
+  </div>
+  <button class="btn-restart" onclick="restartAll()">🔄 Baştan Başla</button>
+</div>
+
+<script>
+// ── BİLGİ HAVUZU ──
+const FACTS = [
+  { icon:"🍯", cat:"DOĞA",    text:"Bal hiç bozulmaz. Arkeologlar 3.000 yıllık Mısır balını tattı ve yenilebilir buldu.", source:"Arkeoloji" },
+  { icon:"🐘", cat:"HAYVAN",  text:"Filler zıplayamaz. Dört ayaklı memeliler arasında bu özelliğe sahip olmayan tek hayvandır.", source:"Zooloji" },
+  { icon:"🌊", cat:"DÜNYA",   text:"Okyanus tabanının %80'i hâlâ keşfedilmemiştir. Mars'ı daha iyi biliyoruz.", source:"Oşinografi" },
+  { icon:"😴", cat:"İNSAN",   text:"Japonya'da iş yerinde uyumak tembellik değil, çok çalışmanın kanıtı sayılır. Buna 'inemuri' denir.", source:"Kültür" },
+  { icon:"🧠", cat:"BİLİM",   text:"Beyin, acı hissetmez. Baş ağrısını çevreleyen dokular hisseder; beynin kendisi değil.", source:"Nöroloji" },
+  { icon:"🦈", cat:"HAYVAN",  text:"Köpekbalıkları kanserden nadiren hastalanır. Bu yüzden tıp dünyası onları inceliyor.", source:"Biyoloji" },
+  { icon:"🌍", cat:"DÜNYA",   text:"Kleopatra, Ay'a gidişten daha geçmişte yaşadı. Uzay çağına, piramitlere olduğundan daha yakın.", source:"Tarih" },
+  { icon:"🦋", cat:"HAYVAN",  text:"Kelebek kozasının içinde tam anlamıyla erir — sıvıya dönüşür, sonra yeniden şekillenir.", source:"Biyoloji" },
+  { icon:"🔥", cat:"BİLİM",   text:"Ateş yanan bir şey değildir. Ateş, bir kimyasal reaksiyonun gözle görülen enerjisidir.", source:"Fizik" },
+  { icon:"🐙", cat:"HAYVAN",  text:"Ahtapotların üç kalbi, mavi kanı ve dokuz beyni vardır. Her kol bağımsız düşünebilir.", source:"Zooloji" },
+  { icon:"🌙", cat:"UZAY",    text:"Ay'da ses yoktur. Astronotlar birbirleriyle telsiz olmadan konuşamazlar.", source:"Astronomi" },
+  { icon:"💀", cat:"İNSAN",   text:"İnsan vücudu ölümden sonra da büyümeye devam eder — tırnaklar ve saçlar değil, hücre bölünmesi.", source:"Biyoloji" },
+  { icon:"🐦", cat:"HAYVAN",  text:"Flamingolar doğal olarak beyaz doğar. Pembe rengi yedikleri algler ve karidesten gelir.", source:"Zooloji" },
+  { icon:"⚡", cat:"BİLİM",   text:"Yıldırım, güneşin yüzeyinden beş kat daha sıcaktır — yaklaşık 30.000 Kelvin.", source:"Fizik" },
+  { icon:"🦷", cat:"İNSAN",   text:"Dişler vücudun tek kendini yenileyemeyen parçasıdır. Bu yüzden diş macunu bu kadar önemlidir.", source:"Tıp" },
+  { icon:"🐢", cat:"HAYVAN",  text:"Kaplumbağalar neredeyse hiç evrim geçirmemiştir. 200 milyon yıl önce de aynı görünüyorlardı.", source:"Paleontoloji" },
+  { icon:"💧", cat:"DÜNYA",   text:"Dünya'daki suyun yalnızca %3'ü tatlı su, bunun %2'si buzullarda kilitlidir.", source:"Coğrafya" },
+  { icon:"🌵", cat:"DOĞA",    text:"Kaktüs dikenleri aslında yapraktır. Fotosentez gövdede yapılır.", source:"Botanik" },
+  { icon:"🐬", cat:"HAYVAN",  text:"Yunuslar uyurken beynin sadece yarısını kapatır. Diğer yarısı uyanık kalır.", source:"Zooloji" },
+  { icon:"🧲", cat:"BİLİM",   text:"Mıknatısları ikiye bölerseniz iki mıknatıs elde edersiniz. Tek kutuplu mıknatıs yoktur.", source:"Fizik" },
+  { icon:"🌺", cat:"DOĞA",    text:"Lale, Hollanda'ya özgü sanılır; ama aslen Orta Asya ve Anadolu'ya ait bir çiçektir.", source:"Botanik" },
+  { icon:"🦜", cat:"HAYVAN",  text:"Papağanlar insan sesini taklit etmez — gerçekten dil öğrenir ve kavramları anlayabilir.", source:"Etoloji" },
+  { icon:"🏔️", cat:"DÜNYA",   text:"Everest dünyanın en uzun dağı değil. Okyanus tabanından ölçülürse Mauna Kea daha uzun.", source:"Coğrafya" },
+  { icon:"🧊", cat:"BİLİM",   text:"Buz, sudan daha hafiftir. Bu yüzden buz yüzer — ve bu özellik hayatı mümkün kılar.", source:"Kimya" },
+  { icon:"🐜", cat:"HAYVAN",  text:"Tüm dünya karıncaları tartılırsa, tüm insan nüfusunun ağırlığına eşit olur.", source:"Entomoloji" },
+  { icon:"🌞", cat:"UZAY",    text:"Güneş'ten gelen ışık Dünya'ya ulaşmak için 8 dakika 20 saniye yol gider.", source:"Astronomi" },
+  { icon:"🎵", cat:"İNSAN",   text:"Müzik dinlerken vücut dopamin salgılar. Bu yüzden favori şarkı gerçekten 'iyi hissettiriyor'.", source:"Nöroloji" },
+  { icon:"🐍", cat:"HAYVAN",  text:"Yılanlar hiç uyumaz, çünkü gözkapakları yoktur. Dinlenirler ama uyku yoktur.", source:"Zooloji" },
+  { icon:"🌈", cat:"BİLİM",   text:"Gökkuşağı bir çember oluşturur. Yalnızca ufkun üzerinde olduğumuz için yarımini görürüz.", source:"Fizik" },
+  { icon:"🍌", cat:"DOĞA",    text:"Muz teknik olarak meyve değil, ot bitkisidir. Muz ağacı aslında dünyanın en büyük ot bitkisidir.", source:"Botanik" },
+  { icon:"🧬", cat:"BİLİM",   text:"İnsan DNA'sının %60'ı muz DNA'sıyla aynıdır. Tüm canlılar ortak atadan gelir.", source:"Genetik" },
+  { icon:"🐻", cat:"HAYVAN",  text:"Kutup ayılarının tüyleri aslında renksizdir. Işığı yansıtarak beyaz görünürler.", source:"Zooloji" },
+  { icon:"💡", cat:"TARİH",   text:"Edison ampulü icat etmedi. Ampulü geliştirip ticarileştirdi. İlk ampul 1802'de Warren de la Rue tarafından yapıldı.", source:"Tarih" },
+  { icon:"🌍", cat:"DÜNYA",   text:"Afrika hem kuzey hem güney, hem doğu hem batı yarım kürelerde bulunur. Tek kıta budur.", source:"Coğrafya" },
+  { icon:"🐌", cat:"HAYVAN",  text:"Salyangozlar birkaç yıl uyuyabilir. Kış uykusunu aşan 'estivation' adlı derin uyku yaparlar.", source:"Zooloji" },
+  { icon:"🧠", cat:"İNSAN",   text:"Beyin %73 sudur. Hafif dehidrasyon bile konsantrasyon ve hafızayı önemli ölçüde azaltır.", source:"Nöroloji" },
+  { icon:"🌊", cat:"UZAY",    text:"Güneş sistemi her 225-250 milyon yılda bir Samanyolu'nu tam tur atar. Buna 'galaktik yıl' denir.", source:"Astronomi" },
+  { icon:"🐝", cat:"HAYVAN",  text:"Arılar ölmeden önce son uçuşlarını yapar. Kovandan uzaklaşarak ölürler, hive'ı temiz tutarlar.", source:"Etoloji" },
+  { icon:"📱", cat:"TEKNOLOJİ",text:"İlk iPhone'un hafızası bugünkü bir sosyal medya fotoğrafından sadece 5 kat daha büyüktü.", source:"Teknoloji" },
+  { icon:"🌿", cat:"DOĞA",    text:"Ağaçlar birbirleriyle toprak altında iletişim kurar. Mantar ağları mesaj ve besin taşır.", source:"Botanik" },
+  { icon:"👁️", cat:"İNSAN",   text:"Göz, yanı başındaki nesneleri görmek için ayarlanan tek organdır. Mikroskop gözün uzantısıdır.", source:"Anatomi" },
+  { icon:"🦁", cat:"HAYVAN",  text:"Aslanların yeleleri ne kadar koyuysa o kadar güçlüdür. Dişiler koyu yeleli erkeği tercih eder.", source:"Zooloji" },
+  { icon:"⏰", cat:"TARİH",   text:"Saat yönü, güneş saatinin kuzey yarım küredeki gölge hareketini taklit etmesinden gelir.", source:"Tarih" },
+  { icon:"🌋", cat:"DÜNYA",   text:"Lav aslında magma değildir. Magma yeraltındayken magma, yüzeye çıkınca lav adını alır.", source:"Jeoloji" },
+  { icon:"🐟", cat:"HAYVAN",  text:"Altınbalığın hafızası 3 saniye değil, en az 3 aydır. Bu mit yanlıştır.", source:"Zooloji" },
+  { icon:"🧪", cat:"BİLİM",   text:"Cam katı değil, çok yavaş akan bir sıvıdır. Eski camlar alttan kalındır çünkü zamanla aktı.", source:"Kimya" },
+  { icon:"🌙", cat:"UZAY",    text:"Ay her yıl Dünya'dan 3.8 cm uzaklaşmaktadır. Milyarlarca yıl önce çok daha büyük görünüyordu.", source:"Astronomi" },
+  { icon:"🦠", cat:"BİLİM",   text:"İnsan vücudunda bakteri sayısı, insan hücresi sayısından fazladır. Biz aslında bir ekosistemiz.", source:"Mikrobiyoloji" },
+  { icon:"🐋", cat:"HAYVAN",  text:"Mavi balina kalbi bir otomobil büyüklüğündedir ve atışı 2 km öteden duyulabilir.", source:"Zooloji" },
+  { icon:"🌺", cat:"TARİH",   text:"1600'lerde Hollanda'da tek bir lale soğanı, bugün 50.000 dolar değerinde bir eve eşitti.", source:"Tarih" },
+  { icon:"🎮", cat:"TEKNOLOJİ",text:"Oyun konsollarının işlemci gücü, Apollo 11'i Ay'a götüren bilgisayardan milyonlarca kat fazladır.", source:"Teknoloji" },
+  { icon:"🐓", cat:"HAYVAN",  text:"Tavuklar dinozorların en yakın yaşayan akrabalarıdır. T-Rex ile aynı soydan gelirler.", source:"Paleontoloji" },
+  { icon:"🌐", cat:"TEKNOLOJİ",text:"İnternet ve World Wide Web aynı şey değildir. İnternet altyapı, Web ise üzerinde çalışan bir servistir.", source:"Teknoloji" },
+  { icon:"💎", cat:"BİLİM",   text:"Elmas kömürden yapılmaz. İkisi de karbondan oluşur, ama elmas çok daha derin ve yüksek basınçta oluşur.", source:"Jeoloji" },
+  { icon:"🐠", cat:"HAYVAN",  text:"Palyaço balıkları tüm erkek doğar. Grup lideri dişi ölünce en güçlü erkek dişiye dönüşür.", source:"Zooloji" },
+  { icon:"🌍", cat:"TARİH",   text:"Türkiye, tarihin en eski yerleşim bölgelerine ev sahipliği yapar. Çatalhöyük 9.000 yıllıktır.", source:"Tarih" },
+  { icon:"🧊", cat:"UZAY",    text:"Güneş sisteminde su, Dünya'dan çok daha fazladır — ama hepsi buz halinde uzaydadır.", source:"Astronomi" },
+  { icon:"🐘", cat:"HAYVAN",  text:"Filler kediler gibi mırlar. Uzak mesafedeki fillerle iletişim için düşük frekanslı sesler kullanırlar.", source:"Etoloji" },
+  { icon:"🌊", cat:"DOĞA",    text:"Deniz kabuklarına kulak verince duyulan ses, okyanus değil — çevredeki ortam sesinin yankısıdır.", source:"Fizik" },
+  { icon:"🧬", cat:"İNSAN",   text:"Her insan ömrü boyunca yaklaşık 25.000 litre tükürük üretir — iki yüzme havuzu dolusu.", source:"Biyoloji" },
+  { icon:"🌙", cat:"TARİH",   text:"Osmanlı padişahları ortalama 26 yıl hüküm sürdü. Kanuni Sultan Süleyman 46 yılla rekor kırdı.", source:"Tarih" },
+  { icon:"🐛", cat:"HAYVAN",  text:"Tırtıllar koza içinde tamamen erir. Sıvı hale gelir. Kelebek bu sıvıdan yeniden inşa edilir.", source:"Biyoloji" },
+  { icon:"⚡", cat:"UZAY",    text:"Yıldızlar arasındaki mesafe o kadar büyüktür ki uzay, neredeyse tamamen boştur.", source:"Astronomi" },
+  { icon:"🏺", cat:"TARİH",   text:"Antik Romalılar diş fırçası yerine hayvan kılından fırça ve yanmış kemik tozu kullandı.", source:"Tarih" },
+  { icon:"🌴", cat:"DOĞA",    text:"Hindistan cevizi ağacı hem meyve hem ahşap hem lif hem yağ verir. Tropikal 'süper ağaç' sayılır.", source:"Botanik" },
+  { icon:"🦅", cat:"HAYVAN",  text:"Kartallar fırtınanın içine uçar. Diğer kuşlar kaçarken kartallar yükseltiyi kullanır.", source:"Etoloji" },
+  { icon:"🧲", cat:"TEKNOLOJİ",text:"Manyetik depolama (HDD) icat edilmeden önce veriler delikli kartona kaydedilirdi.", source:"Teknoloji" },
+  { icon:"🌞", cat:"BİLİM",   text:"Güneşin içinde patlayan nükleer reaksiyonlardan çıkan ışık, yüzeye ulaşmak için 100.000 yıl harcar.", source:"Astrofizik" },
+  { icon:"🐟", cat:"HAYVAN",  text:"Bazı balıklar birbirini tanır. Laboratuvar ortamında balıkların ayna testini geçtiği görüldü.", source:"Zooloji" },
+  { icon:"🌍", cat:"DÜNYA",   text:"Her yıl 40 milyon ton toz Sahra'dan Amazon ormanlarına taşınır ve ormana besin sağlar.", source:"Coğrafya" },
+  { icon:"💊", cat:"TIP",     text:"Aspirin ilk tıbbi ilaçlardan biridir. 3.500 yıl önce Sümerler söğüt kabuğunu ağrı kesici olarak kullandı.", source:"Tıp" },
+  { icon:"🔭", cat:"UZAY",    text:"Gördüğümüz yıldızların çoğu çoktan ölmüştür. Işıkları bize ulaşmaya devam ediyor.", source:"Astronomi" },
+  { icon:"🐺", cat:"HAYVAN",  text:"Köpekler ağlamaz. Üzüntüyü farklı davranışlarla gösterirler. Gözlerindeki yaş başka nedenlerdir.", source:"Etoloji" },
+  { icon:"🌿", cat:"BİLİM",   text:"Oksijenin %20'sini Amazon değil, okyanuslar üretir. Fitoplanktonlar en büyük oksijen kaynağıdır.", source:"Biyoloji" },
+  { icon:"🏛️", cat:"TARİH",   text:"Piramitler inşa edildiğinde mamutlar hâlâ yaşıyordu. Mamutlar MÖ 1650'ye kadar varlığını sürdürdü.", source:"Tarih" },
+  { icon:"🌡️", cat:"BİLİM",   text:"Mutlak sıfır (-273.15°C) evrende ulaşılmış en düşük sıcaklık değildir — ama teorik sınırdır.", source:"Fizik" },
+  { icon:"🦎", cat:"HAYVAN",  text:"Kertenkeleler kuyruğunu kaybedince acı duymaz. Kuyruk bağımsız hareket etmeye devam eder.", source:"Zooloji" },
+  { icon:"🌊", cat:"UZAY",    text:"Güneş her saniye 4 milyon ton kütlesini enerjiye dönüştürür. Ama ömrü milyarlarca yıl daha sürer.", source:"Astrofizik" },
+  { icon:"🐝", cat:"DOĞA",    text:"Arılar ölürse insanlık 4 yıl içinde yok olur. Bitkilerin %80'i arıyla tozlaşır.", source:"Ekoloji" },
+  { icon:"📡", cat:"TEKNOLOJİ",text:"GPS uyduları Einstein'ın izafiyet teorisini hesaba katmak zorundadır. Aksi halde günde 10 km hata yapar.", source:"Teknoloji" },
+  { icon:"🌙", cat:"BİLİM",   text:"Ay'ın yerçekimi olmadan Dünya'nın ekseni istikrarsız olurdu. Mevsimler var olmazdı.", source:"Astronomi" },
+  { icon:"🐊", cat:"HAYVAN",  text:"Timsahlar dil hareket ettiremez. Ağızları açık görünse de dilleri sabit kalmak zorundadır.", source:"Zooloji" },
+  { icon:"🌋", cat:"UZAY",    text:"Venüs'te bir gün bir yıldan uzundur. Kendi etrafında döner ama çok yavaş döner.", source:"Astronomi" },
+  { icon:"🧪", cat:"TARİH",   text:"Orta Çağ'da insanlar dünyanın düz olduğuna inanmadı. Bu bir efsanedir; antik Yunanlılar dünyayı yuvarlak biliyordu.", source:"Tarih" },
+  { icon:"🦟", cat:"HAYVAN",  text:"Sivrisinek tarihte en çok insanı öldüren hayvandır. Savaşlar dahil tüm insan çatışmalarından fazlası.", source:"Tıp" },
+  { icon:"💻", cat:"TEKNOLOJİ",text:"İlk bilgisayar programcısı bir kadındı: Ada Lovelace. 1800'lerin ortasında algoritma yazdı.", source:"Teknoloji" },
+  { icon:"🌺", cat:"DOĞA",    text:"Vanilya, orkide ailesinden gelir. Doğal vanilyayı tozlaştırmak elle yapılmak zorundadır.", source:"Botanik" },
+  { icon:"🦁", cat:"TARİH",   text:"Antik Roma'da gladyatörler çoğunlukla savaşa kadar değil, teslim olana kadar dövüşürdü. Ölüm nadirdi.", source:"Tarih" },
+  { icon:"🌍", cat:"DÜNYA",   text:"Dünya'nın manyetik kutupları yer değiştirir. Şu an kuzey manyetik kutbu Rusya'ya doğru kayıyor.", source:"Jeoloji" },
+  { icon:"🐧", cat:"HAYVAN",  text:"Penguenler tüm yaşamlarında tek bir eşle kalır ve her yıl birbirini bulmak için geri dönerler.", source:"Etoloji" },
+  { icon:"🧠", cat:"BİLİM",   text:"Beyin, kendini acımasızca eleştirdiğinde gerçek acı gibi tepki verir. Öz eleştiri beyin için fiziksel bir tehdit.", source:"Nöroloji" },
+  { icon:"🌊", cat:"DOĞA",    text:"Okyanus, yeryüzünün en büyük müzik salonu gibidir. Sesler binlerce kilometre yayılabilir.", source:"Oşinografi" },
+  { icon:"🔬", cat:"BİLİM",   text:"Işık hızı sabittir ama zaman değildir. Hıza yaklaştıkça zaman yavaşlar — bu ispatlanmıştır.", source:"Fizik" },
+  { icon:"🐬", cat:"HAYVAN",  text:"Yunuslar isimleri vardır. Birbirlerini özgün ıslık sesleriyle çağırır ve tepki verirler.", source:"Etoloji" },
+  { icon:"🌙", cat:"TARİH",   text:"Türkler, tarihte 16 büyük devlet kurdu. Bu, dünya tarihinde herhangi bir millet için rekor sayılır.", source:"Tarih" },
+  { icon:"🧬", cat:"BİLİM",   text:"Eğer tüm insan DNA'sı uzatılsaydı, Güneş'e 70 gidiş dönüş yapabilirdi.", source:"Genetik" },
+  { icon:"🌿", cat:"DOĞA",    text:"Sekoya ağaçları yangından güçlenir. Kozalakları yalnızca yüksek sıcaklıkta açılır ve tohum bırakır.", source:"Botanik" },
+  { icon:"🚀", cat:"UZAY",    text:"Uzayda ağlamak mümkün değildir. Gözyaşları yüzden akmaz — gözde küçük bir top oluşturur.", source:"Astronomi" },
+];
+
+// ── STATE ──
+let seen = JSON.parse(localStorage.getItem('bbm_seen') || '[]');
+let queue = [];
+let current = null;
+let adInterval = null;
+let adSecondsLeft = 3;
+
+function buildQueue() {
+  const unseenIndices = FACTS.map((_,i)=>i).filter(i => !seen.includes(i));
+  queue = unseenIndices.sort(() => Math.random() - 0.5);
+}
+
+function init() {
+  buildQueue();
+  if (queue.length === 0) {
+    showFinish(); return;
+  }
+  showNext();
+  renderDots();
+  startAdTimer();
+}
+
+function showNext() {
+  if (queue.length === 0) { showFinish(); return; }
+  const idx = queue.shift();
+  seen.push(idx);
+  localStorage.setItem('bbm_seen', JSON.stringify(seen));
+  current = FACTS[idx];
+
+  const card = document.getElementById('factCard');
+  card.style.animation = 'none';
+  card.offsetHeight; // reflow
+  card.style.animation = 'cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards';
+
+  document.getElementById('factIcon').textContent = current.icon;
+  document.getElementById('catLabel').textContent = current.cat;
+  document.getElementById('factText').textContent = current.text;
+  document.getElementById('factSource').textContent = `— ${current.source}`;
+  document.getElementById('seenCount').textContent = seen.length;
+
+  renderDots();
+}
+
+function nextFact() {
+  showNext();
+  resetAdTimer();
+}
+
+function renderDots() {
+  const wrap = document.getElementById('progressDots');
+  wrap.innerHTML = '';
+  const total = Math.min(FACTS.length, 10);
+  const pos = Math.floor((seen.length / FACTS.length) * 10);
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'pdot' + (i < pos ? ' seen' : '') + (i === pos ? ' active' : '');
+    wrap.appendChild(d);
+  }
+}
+
+function showFinish() {
+  document.getElementById('finishScreen').style.display = 'flex';
+}
+
+function restartAll() {
+  seen = [];
+  localStorage.removeItem('bbm_seen');
+  document.getElementById('finishScreen').style.display = 'none';
+  init();
+}
+
+// ── AD TIMER ──
+function startAdTimer() {
+  adSecondsLeft = 3;
+  updateAdUI();
+  adInterval = setInterval(() => {
+    adSecondsLeft--;
+    updateAdUI();
+    if (adSecondsLeft <= 0) {
+      clearInterval(adInterval);
+      const wrap = document.getElementById('adWrap');
+      wrap.style.transition = 'opacity 0.4s, max-height 0.4s';
+      wrap.style.opacity = '0';
+      wrap.style.maxHeight = '0';
+      wrap.style.overflow = 'hidden';
+    }
+  }, 1000);
+}
+
+function resetAdTimer() {
+  clearInterval(adInterval);
+  const wrap = document.getElementById('adWrap');
+  wrap.style.opacity = '1';
+  wrap.style.maxHeight = '';
+  wrap.style.overflow = '';
+  startAdTimer();
+}
+
+function updateAdUI() {
+  document.getElementById('adTimer').textContent = adSecondsLeft > 0 ? `${adSecondsLeft} sn` : 'Kapandı';
+  const pct = (adSecondsLeft / 3) * 100;
+  document.getElementById('adProgress').style.width = `${pct}%`;
+}
+
+// ── SWIPE ──
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 60) nextFact();
+}, { passive: true });
+
+// ── BG PARTICLES ──
+const bgC = document.getElementById('bg');
+const bgX = bgC.getContext('2d');
+bgC.width = window.innerWidth;
+bgC.height = window.innerHeight;
+
+const pts = Array.from({length:30}, () => ({
+  x: Math.random()*bgC.width, y: Math.random()*bgC.height,
+  vx:(Math.random()-.5)*.2, vy:(Math.random()-.5)*.2,
+  r: Math.random()*1.2+.3, a: Math.random()*.15+.05
+}));
+
+function bgLoop() {
+  bgX.clearRect(0,0,bgC.width,bgC.height);
+  pts.forEach(p => {
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=bgC.width; if(p.x>bgC.width)p.x=0;
+    if(p.y<0)p.y=bgC.height; if(p.y>bgC.height)p.y=0;
+    bgX.beginPath();
+    bgX.arc(p.x,p.y,p.r,0,Math.PI*2);
+    bgX.fillStyle=`rgba(99,102,241,${p.a})`;
+    bgX.fill();
+  });
+  requestAnimationFrame(bgLoop);
+}
+bgLoop();
+
+init();
+</script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
+</body>
+</html>
