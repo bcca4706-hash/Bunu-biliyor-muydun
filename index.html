@@ -659,5 +659,42 @@ bgLoop();
 
 init();
 </script>
+
+<script>
+(function(){
+  var AD_ID='ca-app-pub-2288995098594728/4291037717';
+  var P=null, ready=false, loading=false, n=0;
+  function preload(){
+    if(!P||ready||loading) return; loading=true;
+    P.prepareInterstitial({adId:AD_ID}).then(function(){ready=true;loading=false;})
+     .catch(function(){loading=false;});
+  }
+  window.bbmShowInterstitial=function(){
+    if(!P) return;
+    if(!ready){ preload(); return; }
+    ready=false;
+    P.showInterstitial().catch(function(){}).then(function(){ setTimeout(preload,1500); });
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var el=document.querySelector('.ad-label');
+    if(el&&el.parentElement) el.parentElement.remove();
+  });
+  function boot(){
+    try{ P=window.Capacitor.Plugins.AdMob; }catch(e){ return; }
+    if(!P) return;
+    P.initialize({initializeForTesting:false}).catch(function(){}).then(preload);
+    var orig=window.nextFact;
+    if(typeof orig==='function'){
+      window.nextFact=function(){
+        orig.apply(this,arguments);
+        n++;
+        if(n%7===0) window.bbmShowInterstitial();
+      };
+    }
+  }
+  if(document.readyState==='complete') setTimeout(boot,300);
+  else window.addEventListener('load',function(){ setTimeout(boot,300); });
+})();
+</script>
 </body>
 </html>
