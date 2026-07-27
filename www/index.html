@@ -299,13 +299,6 @@ html, body {
       Sonraki Bilgi →
     </button>
 
-    <div class="ad-wrap" id="adWrap">
-      <div class="ad-bar">
-        <div class="ad-label">📢 Reklam Alanı · AdMob</div>
-        <div class="ad-timer" id="adTimer">3 sn</div>
-      </div>
-      <div class="ad-progress" id="adProgress" style="width:100%"></div>
-    </div>
   </div>
 </div>
 
@@ -522,8 +515,6 @@ const FACTS = [
 let seen = JSON.parse(localStorage.getItem('bbm_seen') || '[]');
 let queue = [];
 let current = null;
-let adInterval = null;
-let adSecondsLeft = 3;
 
 function buildQueue() {
   const unseenIndices = FACTS.map((_,i)=>i).filter(i => !seen.includes(i));
@@ -537,7 +528,6 @@ function init() {
   }
   showNext();
   renderDots();
-  startAdTimer();
 }
 
 function showNext() {
@@ -563,7 +553,12 @@ function showNext() {
 
 function nextFact() {
   showNext();
-  resetAdTimer();
+  // Gercek AdMob reklam sayaci (her 6 kart gecisinde bir interstitial)
+  if (window.bbmAdCount === undefined) window.bbmAdCount = 0;
+  window.bbmAdCount++;
+  if (window.bbmAdCount % 6 === 0 && typeof window.bbmShowInterstitial === 'function') {
+    window.bbmShowInterstitial();
+  }
 }
 
 function renderDots() {
@@ -587,39 +582,6 @@ function restartAll() {
   localStorage.removeItem('bbm_seen');
   document.getElementById('finishScreen').style.display = 'none';
   init();
-}
-
-// ── AD TIMER ──
-function startAdTimer() {
-  adSecondsLeft = 3;
-  updateAdUI();
-  adInterval = setInterval(() => {
-    adSecondsLeft--;
-    updateAdUI();
-    if (adSecondsLeft <= 0) {
-      clearInterval(adInterval);
-      const wrap = document.getElementById('adWrap');
-      wrap.style.transition = 'opacity 0.4s, max-height 0.4s';
-      wrap.style.opacity = '0';
-      wrap.style.maxHeight = '0';
-      wrap.style.overflow = 'hidden';
-    }
-  }, 1000);
-}
-
-function resetAdTimer() {
-  clearInterval(adInterval);
-  const wrap = document.getElementById('adWrap');
-  wrap.style.opacity = '1';
-  wrap.style.maxHeight = '';
-  wrap.style.overflow = '';
-  startAdTimer();
-}
-
-function updateAdUI() {
-  document.getElementById('adTimer').textContent = adSecondsLeft > 0 ? `${adSecondsLeft} sn` : 'Kapandı';
-  const pct = (adSecondsLeft / 3) * 100;
-  document.getElementById('adProgress').style.width = `${pct}%`;
 }
 
 // ── SWIPE ──
@@ -661,38 +623,50 @@ init();
 </script>
 <script>
 (function(){
-  var AD_ID='ca-app-pub-2288995098594728/4291037717';
-  var P=null, ready=false, loading=false, n=0;
+  // ===== AdMob Interstitial Kopru (temiz surum) =====
+  // TEST icin: asagidaki TEST_MODE=true yap -> Google test reklami cikar (no-fill olmaz)
+  // Reklam cikiyorsa kod dogru, sorun prod reklam biriminin dolmamasidir.
+  var TEST_MODE = true;
+  var PROD_AD_ID = 'ca-app-pub-2288995098594728/4291037717';
+  var TEST_AD_ID = 'ca-app-pub-3940256099942544/1033173712'; // Google resmi test interstitial
+  var AD_ID = TEST_MODE ? TEST_AD_ID : PROD_AD_ID;
+
+  var P=null, ready=false, loading=false;
+
+  function log(m){ try{ console.log('[BBM-AD] '+m); }catch(e){} }
+
   function preload(){
-    if(!P||ready||loading) return; loading=true;
-    P.prepareInterstitial({adId:AD_ID}).then(function(){ready=true;loading=false;})
-     .catch(function(){loading=false;});
+    if(!P || ready || loading) return;
+    loading=true;
+    log('preload basladi');
+    P.prepareInterstitial({ adId: AD_ID })
+      .then(function(){ ready=true; loading=false; log('reklam HAZIR'); })
+      .catch(function(e){ loading=false; log('preload hata: '+(e&&e.message||e)); });
   }
-  window.bbmShowInterstitial=function(){
-    if(!P) return;
-    if(!ready){ preload(); return; }
+
+  window.bbmShowInterstitial = function(){
+    if(!P){ log('plugin yok'); return; }
+    if(!ready){ log('reklam hazir degil, preload ediliyor'); preload(); return; }
     ready=false;
-    P.showInterstitial().catch(function(){}).then(function(){ setTimeout(preload,1500); });
+    log('reklam gosteriliyor');
+    P.showInterstitial()
+      .then(function(){ log('reklam gosterildi'); })
+      .catch(function(e){ log('goster hata: '+(e&&e.message||e)); })
+      .then(function(){ setTimeout(preload, 1500); }); // sonraki reklami yukle
   };
-  document.addEventListener('DOMContentLoaded',function(){
-    var el=document.querySelector('.ad-label');
-    if(el&&el.parentElement) el.parentElement.remove();
-  });
+
   function boot(){
-    try{ P=window.Capacitor.Plugins.AdMob; }catch(e){ return; }
-    if(!P) return;
-    P.initialize({initializeForTesting:false}).catch(function(){}).then(preload);
-    var orig=window.nextFact;
-    if(typeof orig==='function'){
-      window.nextFact=function(){
-        orig.apply(this,arguments);
-        n++;
-        if(n%7===0) window.bbmShowInterstitial();
-      };
-    }
+    try{ P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob; }
+    catch(e){ log('Capacitor/AdMob yok'); return; }
+    if(!P){ log('AdMob plugin bulunamadi'); return; }
+    log('AdMob plugin bulundu, initialize');
+    P.initialize({ initializeForTesting: TEST_MODE })
+      .then(function(){ log('initialize OK'); preload(); })
+      .catch(function(e){ log('initialize hata: '+(e&&e.message||e)); preload(); });
   }
-  if(document.readyState==='complete') setTimeout(boot,300);
-  else window.addEventListener('load',function(){ setTimeout(boot,300); });
+
+  if(document.readyState === 'complete') setTimeout(boot, 400);
+  else window.addEventListener('load', function(){ setTimeout(boot, 400); });
 })();
 </script>
 </body>
