@@ -180,6 +180,22 @@ html, body {
 }
 .next-btn:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
 
+.btn-row { width: 100%; display: flex; gap: 12px; align-items: stretch; }
+.btn-row .next-btn { flex: 1 1 auto; width: auto; }
+.back-btn {
+  flex: 0 0 62px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.15s;
+}
+.back-btn:active { transform: scale(0.97); }
+.back-btn:disabled { opacity: 0.28; cursor: default; }
+
 /* ── AD BANNER ── */
 .ad-wrap {
   width: 100%; position: relative;
@@ -274,7 +290,7 @@ html, body {
   <div class="top-row">
     <div class="app-name">Bunu Biliyor muydun?</div>
     <div class="counter-chip">
-      <span id="seenCount">1</span> / 201
+      <span id="seenCount">0</span> / <span id="totalCount">—</span>
     </div>
   </div>
 
@@ -289,16 +305,16 @@ html, body {
       <div class="fact-text" id="factText">Yükleniyor...</div>
       <div class="fact-source" id="factSource">— Bilim</div>
     </div>
-    <div class="swipe-hint">← Sola kaydır · Sağa kaydır →</div>
+    <div class="swipe-hint">← önceki  ·  sonraki →</div>
   </div>
 
   <div class="progress-dots" id="progressDots"></div>
 
   <div class="bottom-area">
-    <button class="next-btn" onclick="nextFact()">
-      Sonraki Bilgi →
-    </button>
-
+    <div class="btn-row">
+      <button class="back-btn" id="backBtn" onclick="prevFact()" aria-label="Önceki bilgi">←</button>
+      <button class="next-btn" onclick="nextFact()">Sonraki Bilgi →</button>
+    </div>
   </div>
 </div>
 
@@ -511,61 +527,270 @@ const FACTS = [
   { icon:"🚀", cat:"UZAY",    text:"Uzayda ağlamak mümkün değildir. Gözyaşları yüzden akmaz — gözde küçük bir top oluşturur.", source:"Astronomi" },
 ];
 
-// ── STATE ──
-let seen = JSON.parse(localStorage.getItem('bbm_seen') || '[]');
+// ── EK GOMULU BILGILER (offline havuzu genisletir) ──
+const FACTS_EXTRA = [
+  { icon:"🦈", cat:"DOĞA",   text:"Köpekbalıkları ağaçlardan daha eskidir. Yaklaşık 450 milyon yıldır okyanuslarda yaşıyorlar.", source:"Paleontoloji" },
+  { icon:"🪐", cat:"UZAY",   text:"Satürn suya konsa yüzerdi. Yoğunluğu sudan düşük olan tek gezegendir.", source:"Astronomi" },
+  { icon:"🌅", cat:"UZAY",   text:"Venüs'te bir gün, bir yıldan uzundur. Kendi ekseninde dönmesi Güneş'in etrafını dolanmasından yavaştır.", source:"Astronomi" },
+  { icon:"☀️", cat:"UZAY",   text:"Güneş'ten gelen ışık Dünya'ya 8 dakikada ulaşır. Gördüğün Güneş, 8 dakika öncesinin görüntüsüdür.", source:"Astronomi" },
+  { icon:"⭐", cat:"UZAY",   text:"Evrendeki yıldız sayısı, Dünya'daki tüm kumların tanesinden fazladır.", source:"Astronomi" },
+  { icon:"🌌", cat:"UZAY",   text:"Bir nötron yıldızından bir çay kaşığı madde, milyarlarca ton ağırlığında olurdu.", source:"Astrofizik" },
+  { icon:"🔴", cat:"UZAY",   text:"Jüpiter'deki Büyük Kızıl Leke, yüzlerce yıldır süren dev bir fırtınadır. İçine birkaç Dünya sığar.", source:"Astronomi" },
+  { icon:"🗼", cat:"BİLİM",  text:"Eyfel Kulesi yazın 15 santime kadar uzar. Metal sıcakta genleşir.", source:"Fizik" },
+  { icon:"🥶", cat:"BİLİM",  text:"Sıcak su bazı koşullarda soğuk sudan daha hızlı donabilir. Buna Mpemba etkisi denir.", source:"Fizik" },
+  { icon:"🍌", cat:"DOĞA",   text:"Muz botanik olarak bir çilektir; çilek ise gerçek bir meyve değildir.", source:"Botanik" },
+  { icon:"☢️", cat:"BİLİM",  text:"Muzlar hafifçe radyoaktiftir. İçerdikleri potasyum-40 izotopundan dolayı.", source:"Fizik" },
+  { icon:"🌡️", cat:"DÜNYA", text:"Antarktika bir çöldür. Çok az yağış aldığı için Dünya'nın en kuru yeridir.", source:"Coğrafya" },
+  { icon:"🏔️", cat:"DÜNYA", text:"Everest her yıl birkaç milimetre yükselir. Levhalar birbirini itmeye devam ediyor.", source:"Jeoloji" },
+  { icon:"🏜️", cat:"DÜNYA", text:"Sahra Çölü 10.000 yıl önce yemyeşildi; göller ve nehirlerle doluydu.", source:"Jeoloji" },
+  { icon:"💧", cat:"DÜNYA",  text:"Baykal Gölü, dünyadaki donmamış tatlı suyun yaklaşık beşte birini barındırır.", source:"Coğrafya" },
+  { icon:"🌳", cat:"DOĞA",   text:"Amazon 'dünyanın akciğeri' sanılır ama ürettiği oksijenin neredeyse tamamını kendi tüketir.", source:"Ekoloji" },
+  { icon:"🐙", cat:"HAYVAN", text:"Ahtapotların kanı mavidir. Oksijeni demir yerine bakır bazlı bir molekülle taşırlar.", source:"Biyoloji" },
+  { icon:"🐄", cat:"HAYVAN", text:"İneklerin yakın arkadaşları vardır ve arkadaşlarından ayrılınca stres yaşarlar.", source:"Zooloji" },
+  { icon:"🦦", cat:"HAYVAN", text:"Su samurları uyurken el ele tutuşur; böylece akıntıda birbirlerinden ayrı düşmezler.", source:"Zooloji" },
+  { icon:"🦇", cat:"HAYVAN", text:"Yarasalar kör değildir. Çoğu iyi görür, ayrıca sesle yön bulur.", source:"Zooloji" },
+  { icon:"🐂", cat:"HAYVAN", text:"Boğaları kızdıran kırmızı renk değildir; boğalar kırmızıyı göremez. Onları tahrik eden bezin hareketidir.", source:"Zooloji" },
+  { icon:"🦎", cat:"HAYVAN", text:"Bukalemunlar rengini çoğunlukla kamuflaj için değil, iletişim ve ısı için değiştirir.", source:"Zooloji" },
+  { icon:"🐧", cat:"HAYVAN", text:"Penguenler eşlerine çakıl taşı hediye eder. Bazı türlerde bu bir 'evlenme teklifi'dir.", source:"Zooloji" },
+  { icon:"🐨", cat:"HAYVAN", text:"Koalaların parmak izleri insanınkine o kadar benzer ki suç mahallinde karıştırılabilir.", source:"Zooloji" },
+  { icon:"🦒", cat:"HAYVAN", text:"Zürafanın boynu çok uzun olsa da, tıpkı insan gibi yalnızca yedi boyun omuru vardır.", source:"Anatomi" },
+  { icon:"🐌", cat:"HAYVAN", text:"Salyangozlar günlerce, hatta yıllarca uyuyabilir. Kurak dönemde uykuya çekilirler.", source:"Zooloji" },
+  { icon:"🦑", cat:"HAYVAN", text:"Dev kalamarın gözleri bir basketbol topu kadar olabilir; hayvanlar âlemindeki en büyük gözlerdir.", source:"Zooloji" },
+  { icon:"🐜", cat:"HAYVAN", text:"Karıncalar hiç uyumaz gibi görünür; kısa 'şekerlemeler' yaparak dinlenirler.", source:"Zooloji" },
+  { icon:"🐦", cat:"HAYVAN", text:"Bir sinekkuşunun kalbi dakikada 1.200 kez atabilir.", source:"Zooloji" },
+  { icon:"🦴", cat:"İNSAN",  text:"Bebekler yaklaşık 300 kemikle doğar; yetişkinlikte bunlar kaynaşarak 206'ya iner.", source:"Anatomi" },
+  { icon:"🫁", cat:"İNSAN",  text:"Sol akciğer sağdan küçüktür. Kalbe yer açmak için öyle gelişmiştir.", source:"Anatomi" },
+  { icon:"❤️", cat:"İNSAN",  text:"Kalp günde yaklaşık 100.000 kez atar; bir ömürde milyarlarca kez.", source:"Fizyoloji" },
+  { icon:"👃", cat:"İNSAN",  text:"İnsan burnu bir trilyona kadar farklı kokuyu ayırt edebilir.", source:"Nöroloji" },
+  { icon:"👂", cat:"İNSAN",  text:"Kulaklar ve burun ömür boyu büyümeye devam eder; kıkırdak durmadan gelişir.", source:"Anatomi" },
+  { icon:"🩸", cat:"İNSAN",  text:"Vücuttaki tüm damarlar uç uca eklense yaklaşık 100.000 kilometreyi bulur; Dünya'yı iki kez sarar.", source:"Anatomi" },
+  { icon:"🤧", cat:"İNSAN",  text:"Bir hapşırık saatte 100 kilometreyi aşan hızda hava fırlatabilir.", source:"Fizyoloji" },
+  { icon:"👅", cat:"İNSAN",  text:"Burnunu tutarken mırıldanamazsın; ses için havanın burundan çıkması gerekir.", source:"Fizyoloji" },
+  { icon:"🧬", cat:"İNSAN",  text:"İnsan ile muzun DNA'sının yaklaşık yarısı ortaktır. Tüm canlılar akrabadır.", source:"Genetik" },
+  { icon:"✋", cat:"İNSAN",  text:"Tırnaklar baskın elde daha hızlı uzar; o el daha çok kullanıldığı için.", source:"Fizyoloji" },
+  { icon:"🧠", cat:"İNSAN",  text:"'Beynimizin sadece %10'unu kullanırız' sözü bir efsanedir. Beynin neredeyse tamamı aktiftir.", source:"Nöroloji" },
+  { icon:"🦴", cat:"İNSAN",  text:"Kemik, ağırlığına oranla çelikten daha güçlüdür. Bir uyluk kemiği tonlarca yükü taşıyabilir.", source:"Biyomekanik" },
+  { icon:"👁️", cat:"İNSAN", text:"Göz yaşları üç farklı türdedir: bazal, refleks ve duygusal. Kimyasal içerikleri farklıdır.", source:"Fizyoloji" },
+  { icon:"🥕", cat:"TARİH",  text:"Havucun gece görüşünü güçlendirdiği inancı, II. Dünya Savaşı'nda yayılan bir propagandadır.", source:"Tarih" },
+  { icon:"⚔️", cat:"TARİH",  text:"Tarihin en kısa savaşı yaklaşık 38 dakika sürdü: 1896 İngiltere–Zanzibar Savaşı.", source:"Tarih" },
+  { icon:"🎓", cat:"TARİH",  text:"Oxford Üniversitesi, Aztek İmparatorluğu'ndan daha eskidir. Ders 1096'dan beri veriliyor.", source:"Tarih" },
+  { icon:"⛑️", cat:"TARİH",  text:"Vikinglerin boynuzlu miğfer taktığı bir efsanedir; 19. yüzyıl operalarından yayılmıştır.", source:"Tarih" },
+  { icon:"📏", cat:"TARİH",  text:"Napolyon aslında kısa değildi; dönemin ortalama boyundaydı. Efsane ölçü birimi karışıklığından doğdu.", source:"Tarih" },
+  { icon:"🧱", cat:"DÜNYA",  text:"Çin Seddi çıplak gözle uzaydan görülemez; bu yaygın bir yanlış inançtır.", source:"Coğrafya" },
+  { icon:"🕰️", cat:"TARİH", text:"Piramitler inşa edilirken mamutların bir kısmı hâlâ yaşıyordu.", source:"Paleontoloji" },
+  { icon:"☕", cat:"KÜLTÜR", text:"Dünyanın ilk kahvehaneleri 16. yüzyılda İstanbul'da açıldı ve hızla bir kültür merkezi oldu.", source:"Kültür" },
+  { icon:"🥛", cat:"KÜLTÜR", text:"'Yoğurt' kelimesi Türkçedir ve pek çok dünya diline Türkçeden geçmiştir.", source:"Dil" },
+  { icon:"🎅", cat:"KÜLTÜR", text:"Noel Baba'nın kökeni, bugünkü Antalya Demre'de yaşamış Aziz Nikolaos'tur.", source:"Tarih" },
+  { icon:"🌉", cat:"DÜNYA",  text:"İstanbul, iki kıtaya birden yayılan tek büyük şehirdir; Avrupa ve Asya'yı birleştirir.", source:"Coğrafya" },
+  { icon:"🏛️", cat:"TARİH", text:"Göbeklitepe, bilinen en eski tapınaktır; Stonehenge'den yaklaşık 6.000 yıl daha eskidir.", source:"Arkeoloji" },
+  { icon:"🏘️", cat:"TARİH", text:"Çatalhöyük, insanlığın bilinen en eski yerleşimlerinden biridir; 9.000 yıllıktır.", source:"Arkeoloji" },
+  { icon:"⛪", cat:"TARİH",  text:"Ayasofya yaklaşık 1500 yıllıktır ve bin yıl boyunca dünyanın en büyük katedraliydi.", source:"Tarih" },
+  { icon:"🌷", cat:"KÜLTÜR", text:"Lale Hollanda'ya Osmanlı'dan gitti; Avrupa'daki ilk lale soğanları İstanbul'dan gönderildi.", source:"Tarih" },
+  { icon:"💎", cat:"UZAY",   text:"Neptün ve Uranüs'te elmas yağmuru yağıyor olabileceği düşünülüyor.", source:"Astrofizik" },
+  { icon:"🪟", cat:"BİLİM",  text:"Cam bir sıvı değildir; eski pencerelerin altının kalın olması akışından değil, üretim yönteminden kaynaklanır.", source:"Malzeme Bilimi" },
+  { icon:"🧂", cat:"BİLİM",  text:"Mide asidi o kadar güçlüdür ki bir jilet ustura zamanla çözebilir; mideyi koruyan mukus tabakasıdır.", source:"Fizyoloji" },
+  { icon:"🌊", cat:"DÜNYA",  text:"Okyanusların yaklaşık %95'i hâlâ insan gözüyle görülmemiştir.", source:"Oşinografi" },
+  { icon:"🧊", cat:"DÜNYA",  text:"Dünya'daki tatlı suyun çoğu buzullarda kilitlidir; içilebilir su çok küçük bir orandır.", source:"Coğrafya" },
+  { icon:"🌋", cat:"DÜNYA",  text:"Dünya üzerinde her an yaklaşık 20 volkan aktif olarak püskürüyor.", source:"Jeoloji" },
+  { icon:"⚡", cat:"DÜNYA",  text:"Dünya'ya her gün milyonlarca kez yıldırım düşer; her saniye onlarca çakış olur.", source:"Meteoroloji" },
+  { icon:"🌈", cat:"BİLİM",  text:"Gökkuşağı aslında tam bir dairedir; yeri gördüğümüz için genelde yarısını izleriz.", source:"Fizik" },
+  { icon:"❄️", cat:"BİLİM",  text:"İki kar tanesinin birebir aynı olma ihtimali neredeyse sıfırdır; her biri benzersizdir.", source:"Fizik" },
+  { icon:"🔵", cat:"BİLİM",  text:"Gökyüzü mavidir çünkü hava, güneş ışığının mavi rengini diğerlerinden çok saçar.", source:"Fizik" },
+  { icon:"🌡️", cat:"BİLİM", text:"Mutlak sıfırda (-273,15 °C) atomların hareketi neredeyse tamamen durur; daha soğuğu olamaz.", source:"Fizik" },
+  { icon:"💡", cat:"BİLİM",  text:"Bir şimşek, bir anda milyonlarca ampulü besleyecek kadar enerji taşır.", source:"Fizik" },
+  { icon:"🔊", cat:"BİLİM",  text:"Ses suda havadan yaklaşık dört kat daha hızlı yol alır.", source:"Fizik" },
+  { icon:"🕳️", cat:"UZAY",  text:"Kara deliklerin çekimi o kadar güçlüdür ki ışık bile kaçamaz.", source:"Astrofizik" },
+  { icon:"🌠", cat:"UZAY",   text:"Uzayda 'düşen yıldız' yoktur; gördüğümüz, atmosferde yanan küçük toz ve kaya parçalarıdır.", source:"Astronomi" },
+  { icon:"🌗", cat:"UZAY",   text:"Ay her yıl Dünya'dan yaklaşık 3,8 santim uzaklaşıyor.", source:"Astronomi" },
+  { icon:"🧗", cat:"UZAY",   text:"Uluslararası Uzay İstasyonu, Dünya'nın çevresini yaklaşık 90 dakikada bir turlar.", source:"Astronomi" },
+  { icon:"🔭", cat:"UZAY",   text:"Uzak galaksilere baktığımızda aslında geçmişi görürüz; o ışık milyonlarca yıl önce yola çıkmıştır.", source:"Astrofizik" },
+  { icon:"🌱", cat:"DOĞA",   text:"Bambu dünyanın en hızlı büyüyen bitkisidir; bazı türleri günde bir metreye yakın uzayabilir.", source:"Botanik" },
+  { icon:"🍄", cat:"DOĞA",   text:"Dünyanın bilinen en büyük canlısı bir mantardır; kilometrelerce alana yayılmış tek bir organizmadır.", source:"Biyoloji" },
+  { icon:"🌻", cat:"DOĞA",   text:"Genç ayçiçekleri gün boyunca güneşi takip eder; buna heliotropizm denir.", source:"Botanik" },
+  { icon:"🌲", cat:"DOĞA",   text:"Dünyanın en yaşlı ağaçları 4.800 yaşını aşar; piramitlerden bile eskidirler.", source:"Botanik" },
+  { icon:"🍎", cat:"DOĞA",   text:"Elmalar suda yüzer çünkü hacimlerinin yaklaşık dörtte biri havadır.", source:"Botanik" },
+  { icon:"🌶️", cat:"DOĞA",  text:"Acı biberdeki 'yakıcılık' bir tat değil, ağrı sinirlerini uyaran bir kimyasaldır: kapsaisin.", source:"Kimya" },
+  { icon:"🐝", cat:"HAYVAN", text:"Bal arıları dans ederek çiçeklerin yerini birbirlerine tarif eder; buna 'sallanma dansı' denir.", source:"Zooloji" },
+  { icon:"🦟", cat:"HAYVAN", text:"İnsanı yalnızca dişi sivrisinekler ısırır; yumurtaları için kana ihtiyaç duyarlar.", source:"Zooloji" },
+  { icon:"🐜", cat:"HAYVAN", text:"Bazı karıncalar kendi ağırlıklarının 50 katını kaldırabilir.", source:"Zooloji" },
+  { icon:"🕷️", cat:"HAYVAN",text:"Örümcek ipeği, aynı kalınlıktaki çelikten daha sağlamdır.", source:"Malzeme Bilimi" },
+  { icon:"🐊", cat:"HAYVAN", text:"Timsahlar dişlerini ömür boyu yeniler; binlerce dişi eskisi düştükçe yenisi çıkar.", source:"Zooloji" },
+  { icon:"🐸", cat:"HAYVAN", text:"Bazı kurbağalar kışın tamamen donar, kalpleri durur; baharda çözülüp yeniden canlanırlar.", source:"Zooloji" },
+  { icon:"🐫", cat:"HAYVAN", text:"Devenin hörgücü su değil, yağ depolar; bu yağ hem enerji hem su kaynağıdır.", source:"Zooloji" },
+  { icon:"🦔", cat:"HAYVAN", text:"Kirpilerin yaklaşık 5.000 dikeni vardır ve bu dikenler aslında sertleşmiş kıllardır.", source:"Zooloji" },
+  { icon:"🐇", cat:"HAYVAN", text:"Tavşanlar sevinçten havaya zıplayıp döner; bu davranışa 'binky' denir.", source:"Zooloji" },
+  { icon:"🦉", cat:"HAYVAN", text:"Baykuşlar başlarını yaklaşık 270 derece çevirebilir; boyunlarındaki özel damarlar buna izin verir.", source:"Zooloji" },
+  { icon:"🐝", cat:"BİLİM",  text:"Bal, doğadaki tek bozulmayan gıdadır; asitliği ve düşük nemi bakteriyi öldürür.", source:"Kimya" },
+  { icon:"🧀", cat:"KÜLTÜR", text:"Dünyada 1.800'den fazla peynir çeşidi vardır.", source:"Gastronomi" },
+  { icon:"🍫", cat:"KÜLTÜR", text:"Çikolata bir zamanlar para yerine kullanılırdı; Aztekler kakao çekirdeğiyle alışveriş yapardı.", source:"Tarih" },
+  { icon:"🌽", cat:"KÜLTÜR", text:"Bir mısır koçanındaki tane sayısı neredeyse her zaman çifttir.", source:"Botanik" },
+  { icon:"🧅", cat:"BİLİM",  text:"Soğan doğrarken ağlamamızın nedeni, kesildiğinde havaya karışan kükürtlü bir gazdır.", source:"Kimya" },
+  { icon:"🍯", cat:"HAYVAN", text:"Bir kilogram bal için arılar toplamda dünya çevresini birkaç kez dolaşacak kadar uçar.", source:"Zooloji" },
+  { icon:"📚", cat:"KÜLTÜR", text:"Dünyanın en çok konuşulan ana dili Çincedir; en çok ülkede konuşulan dil ise İngilizcedir.", source:"Dil" },
+  { icon:"🎵", cat:"BİLİM",  text:"Müzik dinlemek, beyinde mutluluk kimyasalı dopamin salınımını tetikler.", source:"Nöroloji" },
+  { icon:"😀", cat:"İNSAN",  text:"Gülümsemek beyni kandırır; sahte bir gülümseme bile ruh halini bir miktar iyileştirebilir.", source:"Psikoloji" },
+  { icon:"💤", cat:"İNSAN",  text:"Ömrümüzün yaklaşık üçte birini uykuda geçiririz.", source:"Fizyoloji" },
+  { icon:"🌡️", cat:"HAYVAN",text:"Bir vombatın dışkısı küp şeklindedir; bu sayede yuvarlanıp kaymaz.", source:"Zooloji" }
+];
+
+// ── UZAKTAN GUNCELLENEBILIR HAVUZ ──
+// Yeni bilgi eklemek icin: github.io reponuza facts.json push edin.
+// Play Store guncellemesi/incelemesi GEREKMEZ; kullanicida bir sonraki acilista taze bilgiler akar.
+const REMOTE_FACTS_URL = "https://bcca4706-hash.github.io/facts.json";
+
+// Gomulu havuz = orijinal + yeni eklenenler
+const BUNDLED = FACTS.concat(FACTS_EXTRA);
+let ALL = BUNDLED.slice();
+
+// Kararli kimlik: metne dayali (havuz buyuyunce indeks kaymaz, yeni bilgiler dogal olarak taze akar)
+function factId(f){
+  const s = (f && f.text) ? f.text : '';
+  let h = 0;
+  for (let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) | 0; }
+  return 'f' + (h >>> 0).toString(36);
+}
+function dedupe(list){
+  const m = new Map();
+  list.forEach(f => { if (f && f.text) m.set(factId(f), f); });
+  return Array.from(m.values());
+}
+
+// ── STATE (kimlik bazli 'gorulen' takibi) ──
+let seen = new Set(JSON.parse(localStorage.getItem('bbm_seen2') || '[]'));
 let queue = [];
 let current = null;
 
+function saveSeen(){ try{ localStorage.setItem('bbm_seen2', JSON.stringify(Array.from(seen))); }catch(e){} }
+function updateTotal(){ const el = document.getElementById('totalCount'); if (el) el.textContent = ALL.length; }
+
 function buildQueue() {
-  const unseenIndices = FACTS.map((_,i)=>i).filter(i => !seen.includes(i));
-  queue = unseenIndices.sort(() => Math.random() - 0.5);
+  const unseen = ALL.filter(f => !seen.has(factId(f)));
+  queue = unseen.sort(() => Math.random() - 0.5);
 }
 
-function init() {
+async function loadRemote(){
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 4000);
+    const res = await fetch(REMOTE_FACTS_URL + '?t=' + Date.now(), { signal: ctrl.signal, cache: 'no-store' });
+    clearTimeout(t);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (Array.isArray(data) && data.length){
+      ALL = dedupe(BUNDLED.concat(data.filter(x => x && x.text)));
+    }
+  }catch(e){ /* internet yok / hata -> gomulu havuz kullanilir */ }
+}
+
+async function init() {
+  ALL = dedupe(BUNDLED);
+  updateTotal();
   buildQueue();
-  if (queue.length === 0) {
-    showFinish(); return;
-  }
-  showNext();
-  renderDots();
+  if (queue.length === 0){ seen.clear(); saveSeen(); buildQueue(); }
+  showNext();               // ilk bilgiyi hemen goster (gomulu havuzdan, bekletme yok)
+  await loadRemote();       // arka planda taze bilgileri ekle
+  updateTotal();
+  buildQueue();             // kuyrugu tazele: gorulmeyenler + yeni gelen uzak bilgiler
 }
 
-function showNext() {
-  if (queue.length === 0) { showFinish(); return; }
-  const idx = queue.shift();
-  seen.push(idx);
-  localStorage.setItem('bbm_seen', JSON.stringify(seen));
-  current = FACTS[idx];
+function showToast(msg){
+  let t = document.getElementById('bbmToast');
+  if (!t){
+    t = document.createElement('div');
+    t.id = 'bbmToast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:rgba(99,102,241,.95);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:50;opacity:0;transition:opacity .3s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>{ t.style.opacity = '0'; }, 1800);
+}
 
+// ── GECMIS (ileri/geri gezinme) ──
+let history = [];   // gosterilen bilgiler, sirayla
+let histPos = -1;   // history icindeki mevcut konum
+
+function updateBackBtn(){
+  const b = document.getElementById('backBtn');
+  if (b) b.disabled = (histPos <= 0);
+}
+
+function render(fact){
+  if (!fact) return;
+  current = fact;
   const card = document.getElementById('factCard');
   card.style.animation = 'none';
   card.offsetHeight; // reflow
   card.style.animation = 'cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards';
 
-  document.getElementById('factIcon').textContent = current.icon;
-  document.getElementById('catLabel').textContent = current.cat;
-  document.getElementById('factText').textContent = current.text;
-  document.getElementById('factSource').textContent = `— ${current.source}`;
-  document.getElementById('seenCount').textContent = seen.length;
+  document.getElementById('factIcon').textContent = fact.icon || '💡';
+  document.getElementById('catLabel').textContent = fact.cat || 'BİLGİ';
+  document.getElementById('factText').textContent = fact.text || '';
+  document.getElementById('factSource').textContent = fact.source ? ('— ' + fact.source) : '';
+  document.getElementById('seenCount').textContent = seen.size;
 
   renderDots();
+  updateBackBtn();
 }
 
-function nextFact() {
-  showNext();
-  // Gercek AdMob reklam sayaci (her 6 kart gecisinde bir interstitial)
-  if (window.bbmAdCount === undefined) window.bbmAdCount = 0;
-  window.bbmAdCount++;
-  if (window.bbmAdCount % 6 === 0 && typeof window.bbmShowInterstitial === 'function') {
-    window.bbmShowInterstitial();
+// Kuyruktan yeni (daha once gorulmemis) bilgi cek; havuz bitince kesintisiz yeni tur
+function pullNew(){
+  if (queue.length === 0){
+    seen.clear(); saveSeen();
+    buildQueue();
+    showToast('Yeni tur başladı 🔄');
+  }
+  const f = queue.shift();
+  if (!f) return null;
+  seen.add(factId(f));
+  saveSeen();
+  return f;
+}
+
+// true doner: gercekten YENI bir bilgi acildiysa (reklam sayaci icin)
+function showNext(){
+  if (histPos < history.length - 1){
+    // gecmiste geri gitmistik -> ileri sar (yeni bilgi degil)
+    histPos++;
+    render(history[histPos]);
+    return false;
+  }
+  const f = pullNew();
+  if (!f) return false;
+  history.push(f);
+  if (history.length > 80){ history.shift(); } // gecmisi sinirla
+  histPos = history.length - 1;
+  render(f);
+  return true;
+}
+
+function prevFact(){
+  if (histPos > 0){
+    histPos--;
+    render(history[histPos]);
+  }
+}
+
+function nextFact(){
+  const wasNew = showNext();
+  // Reklam sayaci yalniz YENI bilgi acilinca artar (geri/ileri gezinme reklam tetiklemez)
+  if (wasNew){
+    if (window.bbmAdCount === undefined) window.bbmAdCount = 0;
+    window.bbmAdCount++;
+    if (window.bbmAdCount % 6 === 0 && typeof window.bbmShowInterstitial === 'function'){
+      window.bbmShowInterstitial();
+    }
   }
 }
 
 function renderDots() {
   const wrap = document.getElementById('progressDots');
+  if (!wrap) return;
   wrap.innerHTML = '';
-  const total = Math.min(FACTS.length, 10);
-  const pos = Math.floor((seen.length / FACTS.length) * 10);
+  const total = 10;
+  const denom = ALL.length || 1;
+  const pos = Math.min(total - 1, Math.floor(((seen.size % denom) / denom) * total));
   for (let i = 0; i < total; i++) {
     const d = document.createElement('div');
     d.className = 'pdot' + (i < pos ? ' seen' : '') + (i === pos ? ' active' : '');
@@ -573,15 +798,13 @@ function renderDots() {
   }
 }
 
-function showFinish() {
-  document.getElementById('finishScreen').style.display = 'flex';
-}
-
 function restartAll() {
-  seen = [];
-  localStorage.removeItem('bbm_seen');
-  document.getElementById('finishScreen').style.display = 'none';
-  init();
+  seen.clear(); saveSeen();
+  history = []; histPos = -1;
+  const fs = document.getElementById('finishScreen');
+  if (fs) fs.style.display = 'none';
+  buildQueue();
+  showNext();
 }
 
 // ── SWIPE ──
@@ -589,7 +812,8 @@ let touchStartX = 0;
 document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
 document.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 60) nextFact();
+  if (dx < -60) nextFact();       // sola kaydir -> sonraki
+  else if (dx > 60) prevFact();   // saga kaydir -> onceki
 }, { passive: true });
 
 // ── BG PARTICLES ──
